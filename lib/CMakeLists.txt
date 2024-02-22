@@ -4,6 +4,7 @@ find_package(Threads REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 
 add_library(tcp_server
+    src/asio_generic_server.cpp
     src/server.cpp
 )
 

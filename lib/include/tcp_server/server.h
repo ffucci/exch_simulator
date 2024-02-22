@@ -7,6 +7,16 @@
 
 namespace ip = boost::asio::ip;
 
+struct Decoder {
+    static void decode(std::span<const std::byte> bytes_data) {
+        for (auto b : bytes_data) {
+            std::cout << std::hex << static_cast<int>(b) << " ";
+        }
+        std::cout << std::endl;
+        std::cout << "length received data: " << bytes_data.size() << std::endl;
+    }
+};
+
 class Session : public std::enable_shared_from_this<Session> {
 public:
     Session(ip::tcp::socket socket) : m_socket(std::move(socket)) {}
@@ -28,12 +38,7 @@ private:
                     std::istreambuf_iterator<char>()};
                 auto bytes_data =
                     std::as_bytes(std::span{data.data(), data.size()});
-                std::cout << bytes_data.size() << std::endl;
-                for (auto b : bytes_data) {
-                    std::cout << std::hex << static_cast<int>(b) << " ";
-                }
-                std::cout << std::endl;
-                std::cout << "length received data: " << length << std::endl;
+                Decoder::decode(bytes_data);
                 wait_for_next_request();
             });
     }

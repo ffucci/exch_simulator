@@ -1,2 +1,3 @@
+add_subdirectory(chat_service)
 add_subdirectory(sample_app)
 add_subdirectory(simple_tcp)

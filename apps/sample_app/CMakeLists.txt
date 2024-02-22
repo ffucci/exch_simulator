@@ -1,4 +1,6 @@
-find_package(ZLIB REQUIRED)
+find_package(Boost)
+find_package(Threads REQUIRED)
 
-add_executable(sample_app sample.c)
-target_link_libraries(sample_app ZLIB::ZLIB)
+include_directories(${Boost_INCLUDE_DIRS})
+
+add_executable(sample_app sample.cpp)
