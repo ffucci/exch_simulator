@@ -5,7 +5,6 @@
 #include <string>
 
 #include "tcp_server/asio_generic_server.h"
-]
 
 namespace ff::net::asio {
     // A shared pointer to itself control itself and acquire ownership of a
