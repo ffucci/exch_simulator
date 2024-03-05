@@ -3,7 +3,7 @@ BasedOnStyle: Google
 AccessModifierOffset: -4
 AlignAfterOpenBracket: AlwaysBreak
 AlignConsecutiveAssignments: true
-AlignConsecutiveDeclarations: true
+AlignConsecutiveDeclarations: false
 AlwaysBreakTemplateDeclarations: Yes
 IndentPPDirectives: AfterHash
 IndentWidth: 4

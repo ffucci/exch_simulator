@@ -1,3 +1,6 @@
 add_subdirectory(chat_service)
+add_subdirectory(coro_asio)
+add_subdirectory(coro_asio_tcp)
 add_subdirectory(sample_app)
 add_subdirectory(simple_tcp)
+add_subdirectory(simulator)
