@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include <boost/asio.hpp>
 #include <boost/asio/awaitable.hpp>
 #include <boost/asio/use_awaitable.hpp>
@@ -16,23 +17,62 @@ using namespace std::chrono;
 using boost::asio::ip::tcp;
 
 namespace ff::net::server {
+    using OrderId = uint64_t;
 
     template <typename Request>
-    class Decoder {
+    struct SequencerData {
+        OrderId order_id{0};
+        Request request;
+    };
+
+    template <typename T, size_t SIZE = 1024>
+    class LockFreeQueue {
+        void enqueue(T&& data) {
+            elements_[write_index_] = std::move(data);
+            write_index_            = (write_index_ + 1) & SIZE - 1;
+        }
+
+        T pop() {
+            auto result = elements_[read_index_];
+            read_index_ = (read_index_ + 1) & SIZE - 1;
+            return result;
+        }
+
+        bool empty() const noexcept { return read_index_ == write_index_; }
+
+        bool full() const noexcept { return read_index_ == write_index_ + 1; }
+
+    private:
+        std::atomic<size_t> write_index_{0};
+        std::atomic<size_t> read_index_{0};
+        std::array<T, SIZE> elements_{};
+    };
+
+    template <typename Request>
+    class FIFOSequencer {
     public:
-        void decode(std::span<const std::byte> buffer) {
+        void decode_and_sequence(std::span<const std::byte> buffer) {
             size_t current_offset{0};
             while (buffer.size() > 0) {
-                Request request{};
-                std::memcpy(&request, buffer.data(), sizeof(Request));
+                SequencerData<Request> sequencer_request;
+                std::memcpy(
+                    &sequencer_request.request, buffer.data(), sizeof(Request));
                 current_offset += sizeof(Request);
-                std::cout << "Received request " << request.to_string()
-                          << std::endl;
+
+                auto current_order_id =
+                    order_id_.fetch_add(1, std::memory_order::acq_rel);
+
+                sequencer_request.order_id = current_order_id;
+                std::cout << "Processing Request :  "
+                          << sequencer_request.order_id << " , "
+                          << sequencer_request.request.to_string() << std::endl;
                 buffer = buffer.subspan(current_offset);
             }
         }
 
     private:
+        std::atomic<size_t> order_id_{1};
+        LockFreeQueue<SequencerData<Request>> sequencer_queue_{};
     };
 
     template <typename Request>
@@ -85,17 +125,16 @@ namespace ff::net::server {
             auto ex      = co_await asio::this_coro::executor;
             auto timer   = asio::system_timer{ex};
             auto counter = 0;
-            std::vector<std::byte> elements(1024, std::byte{0x00});
+            std::vector<std::byte> elements(BUFFER_SIZE, std::byte{0x00});
 
             while (true) {
                 try {
                     auto buf = boost::asio::buffer(elements);
                     auto n   = co_await socket.async_read_some(
                         buf, asio::use_awaitable);
-                    std::cout << "Read " << n << " byte(s)\n";
                     // Decode request
                     std::span<const std::byte> view_data{elements.data(), n};
-                    decoder_.decode(view_data);
+                    sequencer_.decode_and_sequence(view_data);
                 } catch (const std::exception& e) {
                     std::cerr << "Connection closed..." << '\n';
                     break;
@@ -108,8 +147,9 @@ namespace ff::net::server {
         std::vector<std::thread> threads;
         uint16_t port_;
 
-        Decoder<Request> decoder_;
-        std::deque<Request> received_data_;
+        FIFOSequencer<Request> sequencer_;
+
+        static constexpr size_t BUFFER_SIZE{1024};
     };
 
 }  // namespace ff::net::server

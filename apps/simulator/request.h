@@ -4,7 +4,6 @@
 
 namespace ff::simulator {
 
-    using OrderId      = uint64_t;
     using ClientId     = uint64_t;
     using InstrumentId = uint64_t;
     using Price        = uint64_t;
