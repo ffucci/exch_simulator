@@ -2,3 +2,4 @@
 build/
 venv/
 settings.json
+.vscode/settings.json
