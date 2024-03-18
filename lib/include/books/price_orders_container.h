@@ -2,6 +2,7 @@
 
 #include <plf_list.h>
 
+#include <list>
 #include <map>
 #include <optional>
 #include <type_traits>
@@ -13,7 +14,7 @@
 namespace ff::books {
 
     template <typename T>
-    using List = plf::list<T>;
+    using List = std::list<T>;
 
     using OrderToItr = std::unordered_map<OrderId, List<Order>::iterator>;
 
@@ -23,6 +24,9 @@ namespace ff::books {
     class PriceOrdersContainer {
     public:
         uint32_t add(const Order& order);
+
+        auto cancel(const Order& order) -> uint32_t;
+
         void print() {}
 
         auto orders(common::Side side, size_t index) const noexcept
@@ -33,6 +37,7 @@ namespace ff::books {
 
     private:
         uint32_t add_internal(const Order& order);
+        auto cancel_internal(const Order& order) -> uint32_t;
 
         static constexpr size_t NUM_BOOKS{2};
         PriceOrderBook books_[NUM_BOOKS];

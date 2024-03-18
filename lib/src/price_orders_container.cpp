@@ -8,6 +8,10 @@ namespace ff::books {
         return add_internal(order);
     }
 
+    auto PriceOrdersContainer::cancel(const Order& order) -> uint32_t {
+        return cancel_internal(order);
+    }
+
     // INTERNAL METHODS
     uint32_t PriceOrdersContainer::add_internal(const Order& order) {
         const auto side    = common::get_side(order.side);
@@ -38,6 +42,30 @@ namespace ff::books {
                          insertion_point.first, std::prev(current_book.end()))
                    : std::distance(
                          std::begin(current_book), insertion_point.first);
+    }
+
+    auto PriceOrdersContainer::cancel_internal(const Order& order) -> uint32_t {
+        const auto side    = common::get_side(order.side);
+        auto& current_book = books_[side];
+        auto found         = current_book.find(order.price);
+
+        // add cumulative volume
+        cumulative_volume_[side][order.price] -= order.qty;
+        if (cumulative_volume_[side][order.price] == 0) {
+            cumulative_volume_[side].erase(order.price);
+        }
+        auto removed_distance =
+            (order.side == common::Side::Bid)
+                ? std::distance(found, std::prev(current_book.end()))
+                : std::distance(std::begin(current_book), found);
+        auto order_to_erase = orders_to_iter_[order.order_id];
+        found->second.erase(order_to_erase);
+
+        orders_to_iter_.erase(order.order_id);
+        if (found->second.empty()) {
+            current_book.erase(order.price);
+        }
+        return removed_distance;
     }
 
     auto PriceOrdersContainer::orders(

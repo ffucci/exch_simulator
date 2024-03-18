@@ -2,7 +2,7 @@
 
 #include "books/price_orders_container.h"
 
-namespace ff::tests {
+namespace ff::books::tests {
 
     class PriceOrdersContainerFixture : public ::testing::Test {
         void SetUp() override {}
@@ -119,4 +119,41 @@ namespace ff::tests {
             container.volume_for_price(common::Side::Bid, 1100), std::nullopt);
         EXPECT_EQ(container.volume_for_price(common::Side::Ask, 1200), 40);
     }
-}  // namespace ff::tests
+
+    TEST_F(
+        PriceOrdersContainerFixture,
+        GIVEN_order_WHEN_add_on_bid_and_cancel_THEN_level_is_removed) {
+        books::Order order;
+        order.order_id = 1;
+        order.price    = 1200;
+        order.qty      = 10;
+        order.side     = common::Side::Bid;
+
+        books::Order order2;
+        order2.order_id = 2;
+        order2.price    = 1100;
+        order2.qty      = 30;
+        order2.side     = common::Side::Bid;
+
+        books::Order order3;
+        order3.order_id = 3;
+        order3.price    = 1200;
+        order3.qty      = 130;
+        order3.side     = common::Side::Bid;
+
+        auto level = container.add(order);
+        EXPECT_EQ(level, 0);
+
+        level = container.add(order2);
+        EXPECT_EQ(level, 1);
+
+        level = container.add(order3);
+        EXPECT_EQ(level, 0);
+
+        level = container.cancel(order2);
+        EXPECT_EQ(level, 1);
+        // EXPECT_EQ(
+        //     container.volume_for_price(common::Side::Bid, order2.price),
+        //     std::nullopt);
+    }
+}  // namespace ff::books::tests
