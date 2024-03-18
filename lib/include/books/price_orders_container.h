@@ -4,6 +4,7 @@
 
 #include <list>
 #include <map>
+#include <memory_resource>
 #include <optional>
 #include <type_traits>
 #include <unordered_map>
@@ -13,6 +14,7 @@
 
 namespace ff::books {
 
+    // for PMR list need to go Linux
     template <typename T>
     using List = std::list<T>;
 
