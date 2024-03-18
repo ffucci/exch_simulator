@@ -88,6 +88,11 @@
         "numbers": "cpp",
         "semaphore": "cpp",
         "stop_token": "cpp",
-        "cinttypes": "cpp"
+        "cinttypes": "cpp",
+        "execution": "cpp",
+        "queue": "cpp",
+        "stack": "cpp",
+        "map": "cpp",
+        "set": "cpp"
     }
 }

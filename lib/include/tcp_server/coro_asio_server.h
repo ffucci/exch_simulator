@@ -11,6 +11,8 @@
 #include <span>
 #include <thread>
 
+#include "ds/lockless_queue.h"
+
 namespace asio = boost::asio;
 
 using namespace std::chrono;
@@ -23,29 +25,6 @@ namespace ff::net::server {
     struct SequencerData {
         OrderId order_id{0};
         Request request;
-    };
-
-    template <typename T, size_t SIZE = 1024>
-    class LockFreeQueue {
-        void enqueue(T&& data) {
-            elements_[write_index_] = std::move(data);
-            write_index_            = (write_index_ + 1) & SIZE - 1;
-        }
-
-        T pop() {
-            auto result = elements_[read_index_];
-            read_index_ = (read_index_ + 1) & SIZE - 1;
-            return result;
-        }
-
-        bool empty() const noexcept { return read_index_ == write_index_; }
-
-        bool full() const noexcept { return read_index_ == write_index_ + 1; }
-
-    private:
-        std::atomic<size_t> write_index_{0};
-        std::atomic<size_t> read_index_{0};
-        std::array<T, SIZE> elements_{};
     };
 
     template <typename Request>
@@ -72,7 +51,7 @@ namespace ff::net::server {
 
     private:
         std::atomic<size_t> order_id_{1};
-        LockFreeQueue<SequencerData<Request>> sequencer_queue_{};
+        ff::ds::LockFreeQueue<SequencerData<Request>> sequencer_queue_{};
     };
 
     template <typename Request>

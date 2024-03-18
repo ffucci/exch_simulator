@@ -31,10 +31,7 @@ auto send_data(tcp::socket socket, int client_id)
     int num_requests = 0;
     while (num_requests < NUM_REQUESTS) {
         auto buf = asio::buffer(elements.data(), elements.size());
-        // std::cout << "Preparing request : " << request.to_string() <<
-        // std::endl;
-        auto n = co_await async_write(socket, buf, asio::use_awaitable);
-        std::cout << "Wrote " << n << " bytes " << std::endl;
+        auto n   = co_await async_write(socket, buf, asio::use_awaitable);
         timer.expires_from_now(100ms);
         co_await timer.async_wait(asio::use_awaitable);
         num_requests++;
