@@ -14,13 +14,11 @@ namespace ff::books {
         auto trades = matching_strategy.match(
             order, passive_book, passive_cumulative_volume);
 
-        if (on_match_handler) {
-            on_match_handler(trades);
-        }
+        on_match_handler(trades);
 
         if (order.qty == 0) {
             return std::nullopt;
         }
         return add_internal(order);
     }
-}
+}  // namespace ff::books

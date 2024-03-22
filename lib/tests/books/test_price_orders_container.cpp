@@ -233,9 +233,11 @@ namespace ff::books::tests {
         level = container.add(order2);
         EXPECT_EQ(level, 1);
 
+        PriceOrdersContainer::Trades all_trades;
         std::invocable<PriceOrdersContainer::Trades> auto print_trades =
-            [](const PriceOrdersContainer::Trades& trades) {
-                for (auto& trade : trades) {
+            [&all_trades](const PriceOrdersContainer::Trades& trades) {
+                all_trades = trades;
+                for (auto& trade : all_trades) {
                     std::cout << trade << std::endl;
                 }
             };
@@ -245,5 +247,6 @@ namespace ff::books::tests {
 
         EXPECT_EQ(
             container.volume_for_price(common::Side::Ask, order3.price), 20);
+        EXPECT_EQ(all_trades.size(), 2);
     }
 }  // namespace ff::books::tests
