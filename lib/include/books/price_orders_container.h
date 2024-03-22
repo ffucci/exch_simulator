@@ -2,6 +2,7 @@
 
 #include <plf_list.h>
 
+#include <concepts>
 #include <list>
 #include <map>
 #include <memory_resource>
@@ -9,23 +10,22 @@
 #include <type_traits>
 #include <unordered_map>
 
+#include "books/fifo_matching.h"
 #include "order.h"
 #include "side.h"
+#include "types.h"
 
 namespace ff::books {
 
-    // for PMR list need to go Linux
-    template <typename T>
-    using List = std::list<T>;
-
-    using OrderToItr = std::unordered_map<OrderId, List<Order>::iterator>;
-
-    using PriceOrderBook   = std::map<Price, List<Order>>;
-    using PriceQuantityMap = std::map<Price, Quantity>;
-
     class PriceOrdersContainer {
     public:
-        uint32_t add(const Order& order);
+        using Trades = std::vector<Trade>;
+
+        auto add(Order& order) -> std::optional<uint32_t>;
+
+        template <std::invocable<PriceOrdersContainer::Trades> OnMatch>
+        auto add_with_match(Order& order, OnMatch&& on_match_handler)
+            -> std::optional<uint32_t>;
 
         auto cancel(const Order& order) -> uint32_t;
 
@@ -46,6 +46,9 @@ namespace ff::books {
         PriceQuantityMap cumulative_volume_[NUM_BOOKS];
 
         OrderToItr orders_to_iter_{};
+        FifoMatching matching_strategy{};
     };
 
 }  // namespace ff::books
+
+#include "books/price_orders_container.hpp"

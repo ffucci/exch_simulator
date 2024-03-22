@@ -152,8 +152,98 @@ namespace ff::books::tests {
 
         level = container.cancel(order2);
         EXPECT_EQ(level, 1);
-        // EXPECT_EQ(
-        //     container.volume_for_price(common::Side::Bid, order2.price),
-        //     std::nullopt);
+        EXPECT_EQ(
+            container.volume_for_price(common::Side::Bid, order2.price),
+            std::nullopt);
+    }
+
+    TEST_F(
+        PriceOrdersContainerFixture,
+        GIVEN_book_state_WHEN_cross_book_on_bid_THEN_trades_happen) {
+        books::Order order;
+        order.order_id = 1;
+        order.side     = common::Side::Bid;
+        order.price    = 1200;
+        order.qty      = 10;
+
+        books::Order order2;
+        order2.order_id = 2;
+        order2.side     = common::Side::Ask;
+        order2.price    = 1300;
+        order2.qty      = 30;
+
+        books::Order order3;
+        order3.order_id = 3;
+        order3.side     = common::Side::Bid;
+        order3.price    = 1300;
+        order3.qty      = 10;
+
+        std::ignore = container.add(order);
+        std::ignore = container.add(order2);
+
+        EXPECT_EQ(
+            container.volume_for_price(common::Side::Bid, order.price), 10);
+
+        EXPECT_EQ(
+            container.volume_for_price(common::Side::Ask, order2.price), 30);
+
+        std::ignore = container.add(order3);
+        EXPECT_EQ(
+            container.volume_for_price(common::Side::Ask, order2.price), 20);
+
+        books::Order order4;
+        order4.order_id = 4;
+        order4.side     = common::Side::Bid;
+        order4.price    = 1350;
+        order4.qty      = 30;
+
+        auto level = container.add(order4);
+        EXPECT_EQ(level, 0);
+        EXPECT_EQ(
+            container.volume_for_price(common::Side::Ask, order2.price),
+            std::nullopt);
+        EXPECT_EQ(
+            container.volume_for_price(common::Side::Bid, order4.price), 10);
+    }
+
+    TEST_F(
+        PriceOrdersContainerFixture,
+        GIVEN_book_state_WHEN_cross_book_on_bid_THEN_all_the_book_is_consumed) {
+        books::Order order;
+        order.order_id = 1;
+        order.side     = common::Side::Bid;
+        order.price    = 1250;
+        order.qty      = 50;
+
+        books::Order order2;
+        order2.order_id = 2;
+        order2.side     = common::Side::Bid;
+        order2.price    = 1200;
+        order2.qty      = 30;
+
+        books::Order order3;
+        order3.order_id = 3;
+        order3.side     = common::Side::Ask;
+        order3.price    = 1190;
+        order3.qty      = 100;
+
+        auto level = container.add(order);
+        EXPECT_EQ(level, 0);
+
+        level = container.add(order2);
+        EXPECT_EQ(level, 1);
+
+        std::invocable<PriceOrdersContainer::Trades> auto print_trades =
+            [](const PriceOrdersContainer::Trades& trades) {
+                for (auto& trade : trades) {
+                    std::cout << trade << std::endl;
+                }
+            };
+
+        level = container.add_with_match(order3, print_trades);
+        EXPECT_EQ(level, 0);
+
+        EXPECT_EQ(
+            container.volume_for_price(common::Side::Ask, order3.price), 20);
     }
 }  // namespace ff::books::tests

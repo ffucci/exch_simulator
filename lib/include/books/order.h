@@ -3,13 +3,9 @@
 #include <cstdint>
 
 #include "books/side.h"
+#include "types.h"
 
 namespace ff::books {
-
-    using OrderId      = uint64_t;
-    using Price        = int64_t;
-    using Quantity     = uint32_t;
-    using InstrumentId = uint64_t;
 
     struct Order {
         InstrumentId instrument_id{};

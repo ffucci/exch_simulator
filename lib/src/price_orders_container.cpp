@@ -4,8 +4,9 @@
 
 namespace ff::books {
 
-    uint32_t PriceOrdersContainer::add(const Order& order) {
-        return add_internal(order);
+    auto PriceOrdersContainer::add(Order& order) -> std::optional<uint32_t> {
+        std::invocable<Trades> auto dummy_handler = [](const Trades& trades) {};
+        return add_with_match(order, std::move(dummy_handler));
     }
 
     auto PriceOrdersContainer::cancel(const Order& order) -> uint32_t {

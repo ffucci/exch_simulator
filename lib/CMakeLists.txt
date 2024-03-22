@@ -21,6 +21,7 @@ target_link_libraries(tcp_server ds_blocks)
 
 add_library(order_books
     src/order_book.cpp
+    src/fifo_matching.cpp
     src/price_orders_container.cpp
 )
 
