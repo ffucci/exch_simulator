@@ -1,5 +1,6 @@
 #pragma once
 
+#include <boost/container/list.hpp>
 #include <iostream>
 #include <list>
 #include <map>
@@ -17,7 +18,7 @@ namespace ff::books {
 
     // for PMR list need to go Linux
     template <typename T>
-    using List = std::list<T>;
+    using List = boost::container::list<T>;
 
     using OrderToItr = std::unordered_map<OrderId, List<Order>::iterator>;
 
