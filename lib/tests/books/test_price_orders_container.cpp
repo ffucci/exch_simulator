@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "books/price_orders_container.h"
+#include "utility.h"
 
 namespace ff::books::tests {
 
@@ -8,6 +9,7 @@ namespace ff::books::tests {
         void SetUp() override {}
 
     protected:
+        OrderGenerator order_generator;
         books::PriceOrdersContainer container;
     };
 
@@ -249,4 +251,47 @@ namespace ff::books::tests {
             container.volume_for_price(common::Side::Ask, order3.price), 20);
         EXPECT_EQ(all_trades.size(), 2);
     }
+
+    TEST_F(
+        PriceOrdersContainerFixture,
+        GIVEN_book_state_WHEN_big_aggressive_order_THEN_all_side_has_been_consumed) {
+        constexpr InstrumentId INSTRUMENT_ID{1};
+        books::Order order = order_generator.create_order(
+            INSTRUMENT_ID, common::Side::Ask, 1100, 20);
+
+        auto order2 = order_generator.create_order(
+            INSTRUMENT_ID, common::Side::Ask, 1200, 100);
+
+        auto order3 = order_generator.create_order(
+            INSTRUMENT_ID, common::Side::Ask, 1300, 80);
+
+        auto crossing_order = order_generator.create_order(
+            INSTRUMENT_ID, common::Side::Bid, 1300, 240);
+
+        auto level = container.add(order);
+        EXPECT_EQ(level, 0);
+
+        level = container.add(order2);
+        EXPECT_EQ(level, 1);
+
+        level = container.add(order3);
+        EXPECT_EQ(level, 2);
+
+        PriceOrdersContainer::Trades all_trades;
+        std::invocable<PriceOrdersContainer::Trades> auto print_trades =
+            [&all_trades](const PriceOrdersContainer::Trades& trades) {
+                all_trades = trades;
+                for (auto& trade : all_trades) {
+                    std::cout << trade << std::endl;
+                }
+            };
+
+        level = container.add_with_match(crossing_order, print_trades);
+        EXPECT_EQ(level, 0);
+        EXPECT_EQ(all_trades.size(), 3);
+        EXPECT_EQ(
+            container.volume_for_price(common::Side::Bid, crossing_order.price),
+            40);
+    }
+
 }  // namespace ff::books::tests
