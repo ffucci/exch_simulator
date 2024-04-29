@@ -1,9 +1,16 @@
 {
-    "version": 4,
-    "vendor": {
-        "conan": {}
-    },
-    "include": [
-        "/Users/coding/Projects/Trading/asio/build/Release/generators/CMakePresets.json"
+    "version": 2,
+    "configurePresets": [
+        {
+            "name": "Release",
+            "displayName": "Release",
+            "description": "Release build",
+            "generator": "Ninja",
+            "binaryDir": "build-release",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+            }
+        }
     ]
 }
