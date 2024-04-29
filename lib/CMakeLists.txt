@@ -1,6 +1,5 @@
 find_package(Boost)
 find_package(Threads REQUIRED)
-find_package(plf_list REQUIRED)
 
 include_directories(${Boost_INCLUDE_DIRS})
 
@@ -26,6 +25,6 @@ add_library(order_books
 )
 
 target_include_directories(order_books PUBLIC include)
-target_link_libraries(order_books plf_list::plf_list)
+target_link_libraries(order_books)
 
 add_subdirectory(tests)
