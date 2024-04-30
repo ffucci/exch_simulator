@@ -27,7 +27,6 @@ uint32_t PriceOrdersContainer::add_internal(Order& order)
     if (found != current_book.end()) {
         auto& current_list = found->second;
         auto last_order_inserted = current_list.insert(current_list.end(), order);
-        // orders_to_iter_[order.order_id] = last_order_inserted;
         auto top_of_book = (order.side == common::Side::Bid) ? std::prev(current_book.end()) : std::begin(current_book);
         return (order.side == common::Side::Bid) ? std::distance(found, std::prev(current_book.end()))
                                                  : std::distance(std::begin(current_book), found);
@@ -35,7 +34,6 @@ uint32_t PriceOrdersContainer::add_internal(Order& order)
 
     List<Order> new_level{};
     new_level.push_back(order);
-    // orders_to_iter_[order.order_id] = last_order_inserted;
     auto insertion_point = current_book.emplace(order.price, std::move(new_level));
     return (order.side == common::Side::Bid) ? std::distance(insertion_point.first, std::prev(current_book.end()))
                                              : std::distance(std::begin(current_book), insertion_point.first);
@@ -43,26 +41,23 @@ uint32_t PriceOrdersContainer::add_internal(Order& order)
 
 auto PriceOrdersContainer::cancel_internal(const Order& order) -> uint32_t
 {
-    return 0;
-    // const auto side = common::get_side(order.side);
-    // auto& current_book = books_[side];
-    // auto found = current_book.find(order.price);
+    const auto side = common::get_side(order.side);
+    auto& current_book = books_[side];
+    auto found = current_book.find(order.price);
 
-    // // add cumulative volume
-    // cumulative_volume_[side][order.price] -= order.qty;
-    // if (cumulative_volume_[side][order.price] == 0) {
-    //     cumulative_volume_[side].erase(order.price);
-    // }
-    // auto removed_distance = (order.side == common::Side::Bid) ? std::distance(found, std::prev(current_book.end()))
-    //                                                           : std::distance(std::begin(current_book), found);
-    // auto order_to_erase = orders_to_iter_[order.order_id];
-    // found->second.erase(order_to_erase);
-
-    // orders_to_iter_.erase(order.order_id);
-    // if (found->second.empty()) {
-    //     current_book.erase(order.price);
-    // }
-    // return removed_distance;
+    auto& current_list = found->second;
+    // add cumulative volume
+    cumulative_volume_[side][order.price] -= order.qty;
+    if (cumulative_volume_[side][order.price] == 0) {
+        cumulative_volume_[side].erase(order.price);
+    }
+    auto removed_distance = (order.side == common::Side::Bid) ? std::distance(found, std::prev(current_book.end()))
+                                                              : std::distance(std::begin(current_book), found);
+    current_list.erase(current_list.iterator_to(order));
+    if (current_list.empty()) {
+        current_book.erase(order.price);
+    }
+    return removed_distance;
 }
 
 auto PriceOrdersContainer::orders(common::Side side, size_t index) const noexcept -> const List<Order>&

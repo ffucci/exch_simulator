@@ -20,8 +20,6 @@ using InstrumentId = uint64_t;
 template <typename T>
 using List = boost::intrusive::list<T, boost::intrusive::constant_time_size<false>>;
 
-// using OrderToItr = std::unordered_map<OrderId, List<Order>::iterator>;
-
 using PriceOrderBook = std::map<Price, List<Order>>;
 using PriceQuantityMap = std::map<Price, Quantity>;
 

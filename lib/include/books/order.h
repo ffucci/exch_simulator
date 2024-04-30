@@ -17,8 +17,6 @@ struct Order : public boost::intrusive::list_base_hook<mode>
     common::Side side;
     Price price{};
     Quantity qty{};
-
-    auto operator<=>(const Order&) const = default;
 };
 
 inline std::ostream& operator<<(std::ostream& os, const Order& order)

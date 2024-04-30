@@ -55,7 +55,6 @@ class PriceOrdersContainer
     PriceOrderBook books_[NUM_BOOKS];
     PriceQuantityMap cumulative_volume_[NUM_BOOKS];
 
-    // OrderToItr orders_to_iter_{};
     FifoMatching matching_strategy{};
 };
 
