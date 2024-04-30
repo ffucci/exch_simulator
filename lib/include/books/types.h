@@ -23,7 +23,7 @@ template <typename T>
 using List = boost::intrusive::list<T, boost::intrusive::constant_time_size<false>>;
 
 using PriceOrderBook = absl::btree_map<Price, List<Order>>;
-using PriceQuantityMap = std::map<Price, Quantity>;
+using PriceQuantityMap = absl::btree_map<Price, Quantity>;
 
 struct Trade
 {

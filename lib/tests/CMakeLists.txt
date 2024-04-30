@@ -8,6 +8,7 @@ add_executable(
     test_books
     main.cpp
     books/test_price_orders_container.cpp
+    books/test_order_book.cpp
 )
 
 if(CODE_COVERAGE)

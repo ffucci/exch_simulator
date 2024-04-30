@@ -3,7 +3,7 @@
 namespace ff::books {
 
 template <std::invocable<PriceOrdersContainer::Trades> OnMatch>
-auto PriceOrdersContainer::add_with_match(Order& order, OnMatch&& on_match_handler) -> std::optional<uint32_t>
+auto PriceOrdersContainer::add_with_match(Order& order, OnMatch&& on_match_handler) noexcept -> std::optional<uint32_t>
 {
     const auto passive_side = common::get_side(order.side) ^ 0x1;  // bid == 0 => ask, ask == 1 => bid == 0
 

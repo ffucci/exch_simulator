@@ -2,7 +2,7 @@
 
 namespace ff::books {
 
-auto PriceOrdersContainer::add(Order& order) -> std::optional<uint32_t>
+auto PriceOrdersContainer::add(Order& order) noexcept -> std::optional<uint32_t>
 {
     std::invocable<Trades> auto dummy_handler = [](const Trades& trades) {};
     return add_with_match(order, std::move(dummy_handler));
@@ -14,7 +14,7 @@ auto PriceOrdersContainer::cancel(const Order& order) -> uint32_t
 }
 
 // INTERNAL METHODS
-uint32_t PriceOrdersContainer::add_internal(Order& order)
+uint32_t PriceOrdersContainer::add_internal(Order& order) noexcept
 {
     const auto side = common::get_side(order.side);
     auto& current_book = books_[side];

@@ -20,10 +20,10 @@ class PriceOrdersContainer
    public:
     using Trades = std::vector<Trade>;
 
-    auto add(Order& order) -> std::optional<uint32_t>;
+    auto add(Order& order) noexcept -> std::optional<uint32_t>;
 
     template <std::invocable<PriceOrdersContainer::Trades> OnMatch>
-    auto add_with_match(Order& order, OnMatch&& on_match_handler) -> std::optional<uint32_t>;
+    auto add_with_match(Order& order, OnMatch&& on_match_handler) noexcept -> std::optional<uint32_t>;
 
     auto cancel(const Order& order) -> uint32_t;
 
@@ -48,7 +48,7 @@ class PriceOrdersContainer
     }
 
    private:
-    uint32_t add_internal(Order& order);
+    uint32_t add_internal(Order& order) noexcept;
     auto cancel_internal(const Order& order) -> uint32_t;
 
     static constexpr size_t NUM_BOOKS{2};
