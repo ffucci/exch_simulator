@@ -2,23 +2,21 @@
 
 namespace ff::books {
 
-    template <std::invocable<PriceOrdersContainer::Trades> OnMatch>
-    auto PriceOrdersContainer::add_with_match(
-        Order& order, OnMatch&& on_match_handler) -> std::optional<uint32_t> {
-        const auto passive_side = common::get_side(order.side) ^
-                                  0x1;  // bid == 0 => ask, ask == 1 => bid == 0
+template <std::invocable<PriceOrdersContainer::Trades> OnMatch>
+auto PriceOrdersContainer::add_with_match(Order& order, OnMatch&& on_match_handler) -> std::optional<uint32_t>
+{
+    const auto passive_side = common::get_side(order.side) ^ 0x1;  // bid == 0 => ask, ask == 1 => bid == 0
 
-        auto& passive_book              = books_[passive_side];
-        auto& passive_cumulative_volume = cumulative_volume_[passive_side];
+    auto& passive_book = books_[passive_side];
+    auto& passive_cumulative_volume = cumulative_volume_[passive_side];
 
-        auto trades = matching_strategy.match(
-            order, passive_book, passive_cumulative_volume);
+    auto trades = matching_strategy.match(order, passive_book, passive_cumulative_volume);
 
-        on_match_handler(trades);
+    on_match_handler(trades);
 
-        if (order.qty == 0) {
-            return std::nullopt;
-        }
-        return add_internal(order);
+    if (order.qty == 0) {
+        return std::nullopt;
     }
+    return add_internal(order);
+}
 }  // namespace ff::books

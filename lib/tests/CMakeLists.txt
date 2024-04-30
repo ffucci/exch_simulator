@@ -1,3 +1,5 @@
+include(CTest)
+include(GoogleTest)
 enable_testing()
 
 find_package(GTest REQUIRED)
@@ -14,5 +16,7 @@ target_link_libraries(
     test_books
 
     order_books
-    gtest::gtest
+    GTest::gtest_main
 )
+
+gtest_discover_tests(test_books)

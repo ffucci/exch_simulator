@@ -15,37 +15,49 @@
 
 namespace ff::books {
 
-    class PriceOrdersContainer {
-    public:
-        using Trades = std::vector<Trade>;
+class PriceOrdersContainer
+{
+   public:
+    using Trades = std::vector<Trade>;
 
-        auto add(Order& order) -> std::optional<uint32_t>;
+    auto add(Order& order) -> std::optional<uint32_t>;
 
-        template <std::invocable<PriceOrdersContainer::Trades> OnMatch>
-        auto add_with_match(Order& order, OnMatch&& on_match_handler)
-            -> std::optional<uint32_t>;
+    template <std::invocable<PriceOrdersContainer::Trades> OnMatch>
+    auto add_with_match(Order& order, OnMatch&& on_match_handler) -> std::optional<uint32_t>;
 
-        auto cancel(const Order& order) -> uint32_t;
+    auto cancel(const Order& order) -> uint32_t;
 
-        void print() {}
+    auto orders(common::Side side, size_t index) const noexcept -> const List<Order>&;
 
-        auto orders(common::Side side, size_t index) const noexcept
-            -> const List<Order>&;
+    auto volume_for_price(common::Side side, Price price) const noexcept -> std::optional<Quantity>;
 
-        auto volume_for_price(common::Side side, Price price) const noexcept
-            -> std::optional<Quantity>;
+    auto to_string() const noexcept
+    {
+        std::stringstream ss;
+        for (auto& ladder : books_) {
+            for (auto& [price, v] : ladder) {
+                ss << price << "-> ";
+                for (auto& el : v) {
+                    ss << el << " ";
+                }
+                ss << std::endl;
+            }
+        }
 
-    private:
-        uint32_t add_internal(const Order& order);
-        auto cancel_internal(const Order& order) -> uint32_t;
+        return ss.str();
+    }
 
-        static constexpr size_t NUM_BOOKS{2};
-        PriceOrderBook books_[NUM_BOOKS];
-        PriceQuantityMap cumulative_volume_[NUM_BOOKS];
+   private:
+    uint32_t add_internal(Order& order);
+    auto cancel_internal(const Order& order) -> uint32_t;
 
-        OrderToItr orders_to_iter_{};
-        FifoMatching matching_strategy{};
-    };
+    static constexpr size_t NUM_BOOKS{2};
+    PriceOrderBook books_[NUM_BOOKS];
+    PriceQuantityMap cumulative_volume_[NUM_BOOKS];
+
+    // OrderToItr orders_to_iter_{};
+    FifoMatching matching_strategy{};
+};
 
 }  // namespace ff::books
 
