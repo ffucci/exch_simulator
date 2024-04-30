@@ -7,10 +7,13 @@ namespace ff::books {
 
 auto OrderBook::add(Order&& order) noexcept -> std::optional<uint32_t>
 {
+    std::invocable<PriceOrdersContainer::Trades> auto handler = [this](const PriceOrdersContainer::Trades& trades) {
+        std::move(trades.begin(), trades.end(), std::back_inserter(all_trades));
+    };
     // see if we can match
     orders_.emplace_back(std::move(order));
     // add into the map
-    return price_orders.add(orders_.back());
+    return price_orders.add_with_match(orders_.back(), std::move(handler));
 }
 
 auto OrderBook::number_active_orders() const noexcept -> uint64_t

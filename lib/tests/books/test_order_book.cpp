@@ -47,4 +47,32 @@ TEST_F(OrderBookFixture, GIVEN_order_book_WHEN_add_multiple_and_cancel_THEN_orde
     std::ignore = order_book.cancel((NUM_ORDERS / 2) - 1);
     EXPECT_EQ(order_book.number_active_orders(), NUM_ORDERS - 2);
 }
+
+TEST_F(OrderBookFixture, GIVEN_order_book_WHEN_add_multiple_and_cancel_THEN_trades_happen)
+{
+    auto order = order_generator.create_order(1, common::Side::Ask, 1200, 50);
+    auto order2 = order_generator.create_order(1, common::Side::Ask, 1300, 70);
+    auto order3 = order_generator.create_order(1, common::Side::Ask, 1320, 90);
+
+    std::ignore = order_book.add(std::move(order));
+    std::ignore = order_book.add(std::move(order2));
+    std::ignore = order_book.add(std::move(order3));
+
+    auto crossing_order = order_generator.create_order(1, common::Side::Bid, 1250, 70);
+    std::ignore = order_book.add(std::move(crossing_order));
+
+    std::cout << order_book.to_string() << std::endl;
+    for (auto trade : order_book.get_trades()) {
+        std::cout << trade << std::endl;
+    }
+
+    EXPECT_EQ(order_book.get_trades().size(), 1);
+    auto crossing_order_2 = order_generator.create_order(1, common::Side::Bid, 1370, 100);
+    std::ignore = order_book.add(std::move(crossing_order_2));
+
+    std::cout << order_book.to_string() << std::endl;
+    for (auto trade : order_book.get_trades()) {
+        std::cout << trade << std::endl;
+    }
+}
 }  // namespace ff::books::tests
