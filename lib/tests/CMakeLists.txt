@@ -10,6 +10,13 @@ add_executable(
     books/test_price_orders_container.cpp
 )
 
+if(CODE_COVERAGE)
+    include(CodeCoverage.cmake)
+    append_coverage_compiler_flags()
+    setup_target_for_coverage_gcov(NAME coverage EXECUTABLE ./bin/tests BASE_DIRECTORY ../coverage)
+endif()
+
+
 target_include_directories(test_books PUBLIC include)
 
 target_link_libraries(
