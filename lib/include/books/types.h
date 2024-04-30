@@ -1,13 +1,15 @@
 #pragma once
 
-#include <boost/intrusive/list.hpp>
-
 #include <iostream>
 #include <list>
 #include <map>
 #include <unordered_map>
 
+#include <boost/intrusive/list.hpp>
+
 #include "books/order.h"
+
+#include "absl/container/btree_map.h"
 
 namespace ff::books {
 
@@ -20,7 +22,7 @@ using InstrumentId = uint64_t;
 template <typename T>
 using List = boost::intrusive::list<T, boost::intrusive::constant_time_size<false>>;
 
-using PriceOrderBook = std::map<Price, List<Order>>;
+using PriceOrderBook = absl::btree_map<Price, List<Order>>;
 using PriceQuantityMap = std::map<Price, Quantity>;
 
 struct Trade

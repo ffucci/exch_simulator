@@ -2,6 +2,7 @@ find_package(Boost)
 find_package(Threads REQUIRED)
 
 include_directories(${Boost_INCLUDE_DIRS})
+include_directories(../abseil-cpp)
 
 add_library(ds_blocks
     src/lockless_queue.cpp
@@ -30,6 +31,7 @@ if(CODE_COVERAGE)
 endif()
 
 target_include_directories(order_books PUBLIC include)
-target_link_libraries(order_books)
+target_link_libraries(order_books PRIVATE absl::btree)
+
 
 add_subdirectory(tests)

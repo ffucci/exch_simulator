@@ -10,5 +10,7 @@ project(exch_simulator)
 option(CODE_COVERAGE "Builds only the test executable." OFF)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
+add_subdirectory(abseil-cpp)
+
 add_subdirectory(lib)
 add_subdirectory(apps)
