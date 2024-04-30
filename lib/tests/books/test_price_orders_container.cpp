@@ -199,4 +199,23 @@ TEST_F(PriceOrdersContainerFixture, GIVEN_book_state_WHEN_big_aggressive_order_T
     EXPECT_EQ(container.volume_for_price(common::Side::Bid, crossing_order.price), 40);
 }
 
+TEST_F(PriceOrdersContainerFixture, GIVEN_book_state_WHEN_multiple_cancels_THEN_book_is_properly_updated)
+{
+    constexpr InstrumentId INSTRUMENT_ID{1};
+    auto order = order_generator.create_order(INSTRUMENT_ID, common::Side::Ask, 1100, 20);
+    auto order2 = order_generator.create_order(INSTRUMENT_ID, common::Side::Ask, 1200, 100);
+    auto order3 = order_generator.create_order(INSTRUMENT_ID, common::Side::Ask, 1200, 80);
+
+    auto level = container.add(order);
+    EXPECT_EQ(level, 0);
+
+    level = container.add(order2);
+    EXPECT_EQ(level, 1);
+
+    level = container.add(order3);
+    EXPECT_EQ(level, 1);
+
+    level = container.cancel(order3);
+    EXPECT_EQ(level, 1);
+}
 }  // namespace ff::books::tests

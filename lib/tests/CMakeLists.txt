@@ -11,9 +11,10 @@ add_executable(
 )
 
 if(CODE_COVERAGE)
-    include(CodeCoverage.cmake)
+    include(CodeCoverage)
     append_coverage_compiler_flags()
-    setup_target_for_coverage_gcov(NAME coverage EXECUTABLE ./bin/tests BASE_DIRECTORY ../coverage)
+    message("${PROJECT_SOURCE_DIR}/lib/src")
+    setup_target_for_coverage_gcovr_html(NAME coverage EXECUTABLE ./test_books BASE_DIRECTORY "${PROJECT_SOURCE_DIR}/lib/src")
 endif()
 
 

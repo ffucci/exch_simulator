@@ -1,7 +1,5 @@
 #include "books/price_orders_container.h"
 
-#include <iostream>
-
 namespace ff::books {
 
 auto PriceOrdersContainer::add(Order& order) -> std::optional<uint32_t>

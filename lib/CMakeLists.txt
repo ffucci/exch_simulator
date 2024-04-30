@@ -24,6 +24,11 @@ add_library(order_books
     src/price_orders_container.cpp
 )
 
+if(CODE_COVERAGE)
+    include(CodeCoverage)
+    append_coverage_compiler_flags_to_target(order_books)
+endif()
+
 target_include_directories(order_books PUBLIC include)
 target_link_libraries(order_books)
 
