@@ -1,4 +1,5 @@
 #include "books/price_orders_container.h"
+#include <cstdint>
 
 namespace ff::books {
 
@@ -14,7 +15,7 @@ auto PriceOrdersContainer::cancel(const Order& order) -> uint32_t
 }
 
 // INTERNAL METHODS
-uint32_t PriceOrdersContainer::add_internal(Order& order) noexcept
+auto PriceOrdersContainer::add_internal(Order& order) noexcept -> uint32_t
 {
     const auto side = common::get_side(order.side);
     auto& current_book = books_[side];
@@ -76,5 +77,20 @@ auto PriceOrdersContainer::volume_for_price(common::Side side, Price price) cons
     }
 
     return found->second;
+}
+auto PriceOrdersContainer::to_string() const noexcept -> std::string
+{
+    std::stringstream ss;
+    for (auto& ladder : books_) {
+        for (auto& [price, v] : ladder) {
+            ss << price << "-> ";
+            for (auto& el : v) {
+                ss << el << " ";
+            }
+            ss << std::endl;
+        }
+    }
+
+    return ss.str();
 }
 }  // namespace ff::books

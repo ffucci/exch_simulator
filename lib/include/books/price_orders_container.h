@@ -1,12 +1,8 @@
 #pragma once
 
-#include <concepts>
-#include <list>
-#include <map>
-#include <memory_resource>
+#include <sys/types.h>
+#include <cstdint>
 #include <optional>
-#include <type_traits>
-#include <unordered_map>
 
 #include "books/fifo_matching.h"
 #include "books/order.h"
@@ -31,24 +27,10 @@ class PriceOrdersContainer
 
     auto volume_for_price(common::Side side, Price price) const noexcept -> std::optional<Quantity>;
 
-    auto to_string() const noexcept
-    {
-        std::stringstream ss;
-        for (auto& ladder : books_) {
-            for (auto& [price, v] : ladder) {
-                ss << price << "-> ";
-                for (auto& el : v) {
-                    ss << el << " ";
-                }
-                ss << std::endl;
-            }
-        }
-
-        return ss.str();
-    }
+    auto to_string() const noexcept -> std::string;
 
    private:
-    uint32_t add_internal(Order& order) noexcept;
+    auto add_internal(Order& order) noexcept -> uint32_t;
     auto cancel_internal(const Order& order) -> uint32_t;
 
     static constexpr size_t NUM_BOOKS{2};

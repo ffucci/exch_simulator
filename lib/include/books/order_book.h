@@ -1,27 +1,28 @@
 #pragma once
 
-#include <cstddef>
 #include <cstdint>
-#include <ios>
 #include <string>
-#include "books/order.h"
 
-#include "absl/container/flat_hash_map.h"
+#include "books/order.h"
 #include "books/price_orders_container.h"
-#include "books/side.h"
 #include "books/types.h"
+#include "protocol/update.h"
+
+#include <boost/lockfree/queue.hpp>
 
 namespace ff::books {
 
 class OrderBook
 {
    public:
-    OrderBook()
+    OrderBook(UpdatesQueue& updates) : updates_(updates)
     {
         orders_.reserve(1 << 20);
         all_trades.reserve(1 << 14);
     }
+
     [[nodiscard]] auto add(Order&& order) noexcept -> std::optional<uint32_t>;
+
     uint32_t modify(OrderId order_id, Price old_price, Price new_price, Quantity old_qty, Quantity qty)
     {
         // We can create a specific modify
@@ -46,6 +47,8 @@ class OrderBook
     std::vector<Order> orders_{};
     PriceOrdersContainer price_orders{};
     PriceOrdersContainer::Trades all_trades;
+
+    UpdatesQueue& updates_;
 };
 
 }  // namespace ff::books

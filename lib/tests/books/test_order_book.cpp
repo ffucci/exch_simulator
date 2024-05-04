@@ -1,12 +1,24 @@
 #include <gtest/gtest.h>
+#include <boost/fusion/algorithm/iteration/for_each_fwd.hpp>
 #include <cstddef>
 
 #include "books/order.h"
 #include "books/order_book.h"
 #include "books/side.h"
+#include "books/types.h"
+#include "protocol/update.h"
 #include "utility.h"
 
 namespace ff::books::tests {
+
+struct print
+{
+    template <typename T>
+    void operator()(const T &t) const
+    {
+        std::cout << static_cast<uint32_t>(t) << '\n';
+    }
+};
 
 class OrderBookFixture : public ::testing::Test
 {
@@ -15,7 +27,9 @@ class OrderBookFixture : public ::testing::Test
     }
 
    protected:
-    OrderBook order_book;
+    static constexpr size_t SIZE_PAGE{1 << 10};
+    UpdatesQueue md_updates{SIZE_PAGE};
+    OrderBook order_book{md_updates};
     OrderGenerator order_generator;
 };
 
@@ -31,6 +45,15 @@ TEST_F(OrderBookFixture, GIVEN_order_book_WHEN_add_multiple_adds_THEN_orders_are
     EXPECT_EQ(level, 1);
 
     EXPECT_EQ(order_book.number_active_orders(), 2);
+    update::Update result;
+    EXPECT_TRUE(md_updates.pop(result));
+    EXPECT_EQ(result.type, update::UpdateType::Add);
+    EXPECT_EQ(result.level, 0);
+    EXPECT_TRUE(md_updates.pop(result));
+    EXPECT_EQ(result.type, update::UpdateType::Add);
+    EXPECT_EQ(result.level, 1);
+
+    boost::fusion::for_each(result, print{});
 }
 
 TEST_F(OrderBookFixture, GIVEN_order_book_WHEN_add_multiple_and_cancel_THEN_orders_are_added)
