@@ -25,6 +25,7 @@ BOOST_FUSION_DEFINE_STRUCT(
     (ff::update::UpdateType, type)
     (uint32_t, level)
     (int64_t, price)
+    (uint32_t, quantity)
 )
 
 // clang-format on

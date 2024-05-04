@@ -16,7 +16,7 @@ auto OrderBook::add(Order&& order) noexcept -> std::optional<uint32_t>
     orders_.emplace_back(std::move(order));
     auto update_level = price_orders.add_with_match(orders_.back(), std::move(handler));
     if (update_level) {
-        updates_.bounded_push(update::Update(update::UpdateType::Add, *update_level, current_price));
+        updates_.bounded_push(update::Update(update::UpdateType::Add, *update_level, current_price, current_qty));
     }
     return update_level;
 }
@@ -33,7 +33,7 @@ auto OrderBook::cancel(OrderId order_id) -> uint32_t
     auto& order = orders_.at(order_id);
     const auto update_level = price_orders.cancel(order);
     orders_[order_id].qty = 0;
-    updates_.bounded_push(update::Update{update::UpdateType::Cancel, update_level, order.price});
+    updates_.bounded_push(update::Update{update::UpdateType::Cancel, update_level, order.price, order.qty});
     return update_level;
 }
 }  // namespace ff::books
