@@ -1,8 +1,5 @@
 #pragma once
 
-#include <cstdint>
-#include <sstream>
-
 #include "books/side.h"
 #include "types.h"
 

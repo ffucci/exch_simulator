@@ -16,13 +16,11 @@ add_library(tcp_server
     src/server.cpp
 )
 
-target_include_directories(tcp_server PUBLIC include)
-target_link_libraries(tcp_server ds_blocks)
-
 add_library(order_books
     src/order_book.cpp
     src/fifo_matching.cpp
     src/price_orders_container.cpp
+    src/types.cpp
 )
 
 if(CODE_COVERAGE)
@@ -31,7 +29,10 @@ if(CODE_COVERAGE)
 endif()
 
 target_include_directories(order_books PUBLIC include)
-target_link_libraries(order_books PRIVATE absl::btree)
+target_link_libraries(order_books PUBLIC absl::btree)
+
+target_include_directories(tcp_server PUBLIC include)
+target_link_libraries(tcp_server ds_blocks order_books)
 
 
 add_subdirectory(tests)

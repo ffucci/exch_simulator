@@ -1,6 +1,5 @@
 #pragma once
 
-#include <sys/types.h>
 #include <cstdint>
 #include <optional>
 
@@ -8,6 +7,8 @@
 #include "books/order.h"
 #include "books/side.h"
 #include "books/types.h"
+
+#include "absl/container/btree_map.h"
 
 namespace ff::books {
 
@@ -34,6 +35,7 @@ class PriceOrdersContainer
     auto cancel_internal(const Order& order) -> uint32_t;
 
     static constexpr size_t NUM_BOOKS{2};
+
     PriceOrderBook books_[NUM_BOOKS];
     PriceQuantityMap cumulative_volume_[NUM_BOOKS];
 

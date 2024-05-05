@@ -1,15 +1,18 @@
 #pragma once
 
 #include <atomic>
-#include <boost/asio.hpp>
-#include <boost/asio/awaitable.hpp>
-#include <boost/asio/use_awaitable.hpp>
-#include <chrono>
-#include <coroutine>
-#include <deque>
 #include <iostream>
 #include <span>
 #include <thread>
+
+#include <boost/asio.hpp>
+#include <boost/asio/awaitable.hpp>
+#include <boost/asio/use_awaitable.hpp>
+
+#include "books/order_book.h"
+#include "books/types.h"
+#include "protocol/request.h"
+#include "protocol/update.h"
 
 #include "ds/lockless_queue.h"
 
@@ -21,40 +24,49 @@ using boost::asio::ip::tcp;
 namespace ff::net::server {
 using OrderId = uint64_t;
 
-template <typename Request>
 struct SequencerData
 {
     OrderId order_id{0};
-    Request request;
+    simulator::Request request;
 };
 
-template <typename Request>
 class FIFOSequencer
 {
    public:
-    void decode_and_sequence(std::span<const std::byte> buffer)
+    void decode_and_sequence(std::span<const std::byte> buffer, books::OrderBook& order_book)
     {
         size_t current_offset{0};
         while (buffer.size() > 0) {
-            SequencerData<Request> sequencer_request;
-            std::memcpy(&sequencer_request.request, buffer.data(), sizeof(Request));
-            current_offset += sizeof(Request);
+            SequencerData sequencer_request;
+            std::memcpy(&sequencer_request.request, buffer.data(), sizeof(SequencerData::request));
+            current_offset += sizeof(SequencerData::request);
 
             auto current_order_id = order_id_.fetch_add(1, std::memory_order::acq_rel);
 
             sequencer_request.order_id = current_order_id;
             std::cout << "Processing Request :  " << sequencer_request.order_id << " , "
                       << sequencer_request.request.to_string() << std::endl;
+
+            auto& request = sequencer_request.request;
+            if (request.request_type == simulator::RequestType::Add) {
+                books::Order order;
+                order.instrument_id = request.instrument_id;
+                order.order_id = current_order_id;
+                order.side = request.side;
+                order.price = request.price;
+                order.qty = request.quantity;
+                std::ignore = order_book.add(std::move(order));
+            }
+
             buffer = buffer.subspan(current_offset);
         }
     }
 
    private:
     std::atomic<size_t> order_id_{1};
-    ff::ds::LockFreeQueue<SequencerData<Request>> sequencer_queue_{};
+    ff::ds::LockFreeQueue<SequencerData> sequencer_queue_{};
 };
 
-template <typename Request>
 class CoroAsioServer
 {
    public:
@@ -72,10 +84,10 @@ class CoroAsioServer
         asio::co_spawn(ctx_, server_, asio::detached);
 
         if (pool_size > 1) {
-            threads.resize(pool_size - 1);
+            threads.reserve(pool_size - 1);
 
             for (int i = 0; i < pool_size; ++i) {
-                threads[i] = std::thread([this]() { ctx_.run(); });
+                threads.emplace_back([this]() { ctx_.run(); });
             }
         }
 
@@ -116,8 +128,9 @@ class CoroAsioServer
                 auto n = co_await socket.async_read_some(buf, asio::use_awaitable);
                 // Decode request
                 std::span<const std::byte> view_data{elements.data(), n};
-                sequencer_.decode_and_sequence(view_data);
+                sequencer_.decode_and_sequence(view_data, order_book_);
             } catch (const std::exception& e) {
+                std::cerr << order_book_.to_string() << std::endl;
                 std::cerr << "Connection closed..." << '\n';
                 break;
             }
@@ -129,7 +142,10 @@ class CoroAsioServer
     std::vector<std::thread> threads;
     uint16_t port_;
 
-    FIFOSequencer<Request> sequencer_;
+    FIFOSequencer sequencer_;
+
+    UpdatesQueue md_updates_{1 << 12};
+    books::OrderBook order_book_{md_updates_};
 
     static constexpr size_t BUFFER_SIZE{1024};
 };

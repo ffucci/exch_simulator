@@ -5,9 +5,8 @@
 #include <boost/lockfree/queue.hpp>
 #include <boost/intrusive/list.hpp>
 
-#include "books/order.h"
-
 #include "absl/container/btree_map.h"
+
 #include "protocol/update.h"
 
 using UpdatesQueue = boost::lockfree::queue<ff::update::Update>;

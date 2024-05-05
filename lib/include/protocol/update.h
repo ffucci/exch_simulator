@@ -1,10 +1,10 @@
 #pragma once
 
+#include <cstdint>
+
 #include <boost/fusion/include/define_struct.hpp>
 #include <boost/fusion/include/for_each.hpp>
 #include <boost/fusion/include/is_sequence.hpp>
-#include <cstdint>
-#include "books/types.h"
 
 namespace ff::update {
 
