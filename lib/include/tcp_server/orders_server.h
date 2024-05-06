@@ -11,15 +11,14 @@ namespace ff::net::server {
 class OrderServer
 {
    public:
-    explicit OrderServer(RequestsQueue& requests_queue);
+    explicit OrderServer(RequestsQueue& requests_queue, MDUpdatesQueue& md_updates);
 
    private:
     void process_request(const SequencerData& sequencer_request);
 
-    UpdatesQueue md_updates_{1 << 12};
     RequestsQueue& requests_queue_;
 
-    books::OrderBook order_book_{md_updates_};
+    books::OrderBook order_book_;
     std::jthread polling_thread_;
 };
 

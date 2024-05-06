@@ -28,7 +28,7 @@ class OrderBookFixture : public ::testing::Test
 
    protected:
     static constexpr size_t SIZE_PAGE{1 << 10};
-    UpdatesQueue md_updates{SIZE_PAGE};
+    MDUpdatesQueue md_updates{SIZE_PAGE};
     OrderBook order_book{md_updates};
     OrderGenerator order_generator;
 };

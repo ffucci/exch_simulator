@@ -1,8 +1,10 @@
 #include "tcp_server/orders_server.h"
+#include "books/types.h"
 
 namespace ff::net::server {
 
-OrderServer::OrderServer(RequestsQueue& requests_queue) : requests_queue_(requests_queue)
+OrderServer::OrderServer(RequestsQueue& requests_queue, MDUpdatesQueue& md_updates)
+    : requests_queue_(requests_queue), order_book_(md_updates)
 {
     polling_thread_ = std::jthread([this](std::stop_token token) {
         while (!token.stop_requested()) {

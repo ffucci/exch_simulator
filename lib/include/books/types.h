@@ -9,7 +9,7 @@
 
 #include "protocol/update.h"
 
-using UpdatesQueue = boost::lockfree::queue<ff::update::Update>;
+using MDUpdatesQueue = boost::lockfree::queue<ff::update::Update>;
 
 namespace ff::books {
 

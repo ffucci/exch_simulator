@@ -15,7 +15,7 @@ namespace ff::books {
 class OrderBook
 {
    public:
-    OrderBook(UpdatesQueue& updates) : updates_(updates)
+    OrderBook(MDUpdatesQueue& updates) : updates_(updates)
     {
         orders_.reserve(1 << 20);
         all_trades.reserve(1 << 14);
@@ -48,7 +48,7 @@ class OrderBook
     PriceOrdersContainer price_orders{};
     PriceOrdersContainer::Trades all_trades;
 
-    UpdatesQueue& updates_;
+    MDUpdatesQueue& updates_;
 };
 
 }  // namespace ff::books
