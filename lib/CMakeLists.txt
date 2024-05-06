@@ -14,6 +14,7 @@ add_library(tcp_server
     src/asio_generic_server.cpp
     src/coro_asio_server.cpp
     src/orders_server.cpp
+    src/md_udp_multicast.cpp
     src/server.cpp
 )
 
