@@ -13,6 +13,7 @@ target_include_directories(ds_blocks PUBLIC include)
 add_library(tcp_server
     src/asio_generic_server.cpp
     src/coro_asio_server.cpp
+    src/orders_server.cpp
     src/server.cpp
 )
 

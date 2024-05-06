@@ -23,13 +23,14 @@ auto send_data(tcp::socket socket, int client_id) -> boost::asio::awaitable<void
     request.instrument_id = 1345;
     request.price = 4000;
     request.quantity = 10;
-
-    std::memcpy(elements.data(), &request, elements.size());
     auto ex = co_await asio::this_coro::executor;
     auto timer = asio::system_timer{ex};
     int num_requests = 0;
     while (num_requests < NUM_REQUESTS) {
+        std::memcpy(elements.data(), &request, elements.size());
         auto buf = asio::buffer(elements.data(), elements.size());
+        request.price += 10;
+        request.quantity += 10;
         auto n = co_await async_write(socket, buf, asio::use_awaitable);
         timer.expires_from_now(100ms);
         co_await timer.async_wait(asio::use_awaitable);

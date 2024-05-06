@@ -30,10 +30,17 @@ struct SequencerData
     simulator::Request request;
 };
 
+// using RequestsQueue = ff::ds::LockFreeQueue<SequencerData>;
+using RequestsQueue = boost::lockfree::queue<SequencerData>;
+
 class FIFOSequencer
 {
    public:
-    void decode_and_sequence(std::span<const std::byte> buffer, books::OrderBook& order_book)
+    explicit FIFOSequencer(RequestsQueue& orders_queue) : sequencer_queue_(orders_queue)
+    {
+    }
+
+    void decode_and_sequence(std::span<const std::byte> buffer)
     {
         size_t current_offset{0};
         while (buffer.size() > 0) {
@@ -47,30 +54,21 @@ class FIFOSequencer
             std::cout << "Processing Request :  " << sequencer_request.order_id << " , "
                       << sequencer_request.request.to_string() << std::endl;
 
-            auto& request = sequencer_request.request;
-            if (request.request_type == simulator::RequestType::Add) {
-                books::Order order;
-                order.instrument_id = request.instrument_id;
-                order.order_id = current_order_id;
-                order.side = request.side;
-                order.price = request.price;
-                order.qty = request.quantity;
-                std::ignore = order_book.add(std::move(order));
-            }
-
+            sequencer_queue_.bounded_push(sequencer_request);
             buffer = buffer.subspan(current_offset);
         }
     }
 
    private:
     std::atomic<size_t> order_id_{1};
-    ff::ds::LockFreeQueue<SequencerData> sequencer_queue_{};
+    RequestsQueue& sequencer_queue_;
 };
 
 class CoroAsioServer
 {
    public:
-    CoroAsioServer(asio::io_context& ctx, uint16_t port) : ctx_(ctx), port_(port)
+    CoroAsioServer(asio::io_context& ctx, uint16_t port, RequestsQueue& requests_queue)
+        : ctx_(ctx), port_(port), sequencer_(requests_queue)
     {
     }
 
@@ -128,9 +126,8 @@ class CoroAsioServer
                 auto n = co_await socket.async_read_some(buf, asio::use_awaitable);
                 // Decode request
                 std::span<const std::byte> view_data{elements.data(), n};
-                sequencer_.decode_and_sequence(view_data, order_book_);
+                sequencer_.decode_and_sequence(view_data);
             } catch (const std::exception& e) {
-                std::cerr << order_book_.to_string() << std::endl;
                 std::cerr << "Connection closed..." << '\n';
                 break;
             }
@@ -143,9 +140,6 @@ class CoroAsioServer
     uint16_t port_;
 
     FIFOSequencer sequencer_;
-
-    UpdatesQueue md_updates_{1 << 12};
-    books::OrderBook order_book_{md_updates_};
 
     static constexpr size_t BUFFER_SIZE{1024};
 };
