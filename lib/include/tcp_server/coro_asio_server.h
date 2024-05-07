@@ -14,7 +14,7 @@
 #include "protocol/request.h"
 #include "protocol/update.h"
 
-#include "ds/lockless_queue.h"
+#include "ds/fifo_sequencer.h"
 
 namespace asio = boost::asio;
 
@@ -22,52 +22,11 @@ using namespace std::chrono;
 using boost::asio::ip::tcp;
 
 namespace ff::net::server {
-using OrderId = uint64_t;
-
-struct SequencerData
-{
-    OrderId order_id{0};
-    simulator::Request request;
-};
-
-// using RequestsQueue = ff::ds::LockFreeQueue<SequencerData>;
-using RequestsQueue = boost::lockfree::queue<SequencerData>;
-
-class FIFOSequencer
-{
-   public:
-    explicit FIFOSequencer(RequestsQueue& orders_queue) : sequencer_queue_(orders_queue)
-    {
-    }
-
-    void decode_and_sequence(std::span<const std::byte> buffer)
-    {
-        size_t current_offset{0};
-        while (buffer.size() > 0) {
-            SequencerData sequencer_request;
-            std::memcpy(&sequencer_request.request, buffer.data(), sizeof(SequencerData::request));
-            current_offset += sizeof(SequencerData::request);
-
-            auto current_order_id = order_id_.fetch_add(1, std::memory_order::acq_rel);
-
-            sequencer_request.order_id = current_order_id;
-            std::cout << "Processing Request :  " << sequencer_request.order_id << " , "
-                      << sequencer_request.request.to_string() << std::endl;
-
-            sequencer_queue_.bounded_push(sequencer_request);
-            buffer = buffer.subspan(current_offset);
-        }
-    }
-
-   private:
-    std::atomic<size_t> order_id_{1};
-    RequestsQueue& sequencer_queue_;
-};
 
 class CoroAsioServer
 {
    public:
-    CoroAsioServer(asio::io_context& ctx, uint16_t port, RequestsQueue& requests_queue)
+    CoroAsioServer(asio::io_context& ctx, uint16_t port, ff::ds::sequencer::RequestsQueue& requests_queue)
         : ctx_(ctx), port_(port), sequencer_(requests_queue)
     {
     }
@@ -139,9 +98,9 @@ class CoroAsioServer
     std::vector<std::thread> threads;
     uint16_t port_;
 
-    FIFOSequencer sequencer_;
+    ff::ds::sequencer::FIFOSequencer sequencer_;
 
-    static constexpr size_t BUFFER_SIZE{1024};
+    static constexpr size_t BUFFER_SIZE{1 << 14};
 };
 
 }  // namespace ff::net::server

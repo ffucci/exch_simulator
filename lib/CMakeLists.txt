@@ -21,6 +21,7 @@ add_library(tcp_server
 add_library(order_books
     src/order_book.cpp
     src/fifo_matching.cpp
+    src/fifo_sequencer.cpp
     src/price_orders_container.cpp
     src/types.cpp
 )

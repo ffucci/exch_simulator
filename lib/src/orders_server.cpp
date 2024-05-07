@@ -3,12 +3,12 @@
 
 namespace ff::net::server {
 
-OrderServer::OrderServer(RequestsQueue& requests_queue, MDUpdatesQueue& md_updates)
+OrderServer::OrderServer(ds::sequencer::RequestsQueue& requests_queue, MDUpdatesQueue& md_updates)
     : requests_queue_(requests_queue), order_book_(md_updates)
 {
     polling_thread_ = std::jthread([this](std::stop_token token) {
         while (!token.stop_requested()) {
-            SequencerData sequencer_request;
+            ds::sequencer::SequencerData sequencer_request;
             auto can_read = requests_queue_.pop(sequencer_request);
             if (can_read) {
                 process_request(sequencer_request);
@@ -18,7 +18,7 @@ OrderServer::OrderServer(RequestsQueue& requests_queue, MDUpdatesQueue& md_updat
     });
 }
 
-void OrderServer::process_request(const SequencerData& sequencer_request)
+void OrderServer::process_request(const ds::sequencer::SequencerData& sequencer_request)
 {
     auto& request = sequencer_request.request;
     switch (request.request_type) {
@@ -33,6 +33,8 @@ void OrderServer::process_request(const SequencerData& sequencer_request)
             std::cout << order << std::endl;
         } break;
 
+        case simulator::RequestType::Cancel: {
+        } break;
         default:
             std::cerr << "Unrecognized response..." << std::endl;
             break;
